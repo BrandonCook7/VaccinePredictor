@@ -1,17 +1,25 @@
 import numpy as np
 import pandas as pd
-import sklearn
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.impute import SimpleImputer
+
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import DotProduct, WhiteKernel
+
 import matplotlib.pyplot as plt
 from datetime import date
+import datetime
 
-unordered_vacc_df = pd.read_csv("datasets/us_state_vaccinations.csv")
+unordered_vacc_df = pd.read_csv("datasets/us_state_vaccinations0501.csv")
 state_vacc = [pd.DataFrame]
 state_vacc_dict = {}
 us_state_pop = pd.read_csv("datasets/2019_Census_Data_Population.csv")
 #print(unordered_vacc_df)
-vacc_df = unordered_vacc_df[['date','location','total_vaccinations','total_distributed','people_vaccinated','people_fully_vaccinated', 'daily_vaccinations']].copy()
-
+#vacc_df = unordered_vacc_df[['date','location','total_vaccinations','total_distributed','people_vaccinated','people_fully_vaccinated', 'daily_vaccinations']].copy()
+vacc_df = unordered_vacc_df[['date','location','people_vaccinated','people_fully_vaccinated']].copy()
 current_date = date.today()
+
 
 
 def removeNonStates():
@@ -88,6 +96,51 @@ def graphVaccinated(dateUntil, state):
 
 removeNonStates()
 orderByStates()
+def convertTime(dateString):#Converts a string to datetime then gregorian ordinal of the date, which helps the algorthim understand the data better
+    dt_object = datetime.datetime.strptime(dateString, "%Y-%m-%d")
+    ordNum = dt_object.toordinal()
+    return ordNum
 
-graphVaccinated(date(2021, 4, 20), "New Hampshire")
+def regressionAlgo(state):
+    state_data = state_vacc_dict.get(state)
+    
+    state_data.reset_index(inplace=True)
+    #state_vaccinations = state_data[['people_fully_vaccinated', 'people_vaccinated']].copy()
+    state_vaccinations = state_data['people_fully_vaccinated'].copy()
+    print(state_vaccinations)
+    state_vaccinations = state_vaccinations.interpolate()
+    print(state_vaccinations)
+    state_dates = state_data['date']
+    state_dates_ord = []
+    for i in state_dates: #Passing all the dates into function before splitting the data
+        state_dates_ord.append(convertTime(i))
 
+
+    ord_series = pd.Series(state_dates_ord)
+    ord_series = ord_series.values.reshape(-1, 1)
+    #state_vaccinations = state_vaccinations.reset_index()
+    print(state_vaccinations)
+    y = state_vaccinations
+    x = ord_series
+    print(x)
+    #y = ord_series.values.astype(np.float)
+
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=0)
+
+    #x_train= x_train.values.reshape(-1,1)
+    #x_test = x_test.values.reshape(-1,1)
+
+    logistic_regr = LogisticRegression(solver='lbfgs', max_iter=1000)
+    logistic_regr.fit(x_train, y_train)
+
+    prediction = logistic_regr.predict(x_test)
+    print("Prediction: ", prediction)
+    score = logistic_regr.score(x_test,y_test)
+    print("Score: ", score)
+
+    #score = logistic_regr.score(y_test, y_test)
+    #print(score)
+regressionAlgo("New Hampshire")
+#graphVaccinated(date(2021, 5, 1), "New Hampshire")
+#print(convertTime("2021-04-05"))
+#print(vacc_df)
