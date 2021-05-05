@@ -6,9 +6,6 @@ from sklearn.impute import SimpleImputer
 
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import DotProduct, WhiteKernel
-from sklearn.datasets import make_friedman2
-
-from sklearn.linear_model import LinearRegression
 
 import matplotlib.pyplot as plt
 from datetime import date
@@ -119,35 +116,31 @@ def regressionAlgo(state):
         state_dates_ord.append(convertTime(i))
 
 
-
     ord_series = pd.Series(state_dates_ord)
     ord_series = ord_series.values.reshape(-1, 1)
     #state_vaccinations = state_vaccinations.reset_index()
     print(state_vaccinations)
     y = state_vaccinations
     x = ord_series
-    print(ord_series)
+    print(x)
     #y = ord_series.values.astype(np.float)
-    #ml_df = pd.DataFrame(state_vaccinations)
 
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=0)
 
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25)
-    
+    #x_train= x_train.values.reshape(-1,1)
+    #x_test = x_test.values.reshape(-1,1)
 
+    logistic_regr = LogisticRegression(solver='lbfgs', max_iter=1000)
+    logistic_regr.fit(x_train, y_train)
 
-    linear = LinearRegression()
-    linear.fit(x_train,y_train)
-    print(linear.intercept_)
-    print(linear.coef_)
+    prediction = logistic_regr.predict(x_test)
+    print("Prediction: ", prediction)
+    score = logistic_regr.score(x_test,y_test)
+    print("Score: ", score)
 
-    y_pred = linear.predict(x_test)
-    print(x_test)
-    df = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred})
-    print(df)
-    plt.scatter(x_test, y_test, color='b')
-    plt.plot(x_test, y_pred, color='k')
-    plt.show()
-regressionAlgo("Alabama")
+    #score = logistic_regr.score(y_test, y_test)
+    #print(score)
+regressionAlgo("New Hampshire")
 #graphVaccinated(date(2021, 5, 1), "New Hampshire")
 #print(convertTime("2021-04-05"))
 #print(vacc_df)
