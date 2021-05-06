@@ -4,11 +4,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.impute import SimpleImputer
 
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import DotProduct, WhiteKernel
-from sklearn.datasets import make_friedman2
-
 from sklearn.linear_model import LinearRegression
+
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import mean_squared_error
 
 import matplotlib.pyplot as plt
 from datetime import date
@@ -122,6 +122,7 @@ def regressionAlgo(state):
 
     ord_series = pd.Series(state_dates_ord)
     ord_series = ord_series.values.reshape(-1, 1)
+    state_vaccinations = state_vaccinations.values.reshape(-1, 1)
     #state_vaccinations = state_vaccinations.reset_index()
     print(state_vaccinations)
     y = state_vaccinations
@@ -129,12 +130,62 @@ def regressionAlgo(state):
     print(ord_series)
     #y = ord_series.values.astype(np.float)
     #ml_df = pd.DataFrame(state_vaccinations)
-
-
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25)
     
 
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25)
 
+    lin_reg = LinearRegression()
+    lin_reg.fit(x,y)
+
+    poly_reg = PolynomialFeatures(degree=4)
+    x_poly=poly_reg.fit_transform(x)
+    poly_reg.fit(x_poly,y)
+    lin_reg2 = LinearRegression()
+    lin_reg2.fit(x_poly,y)
+    '''
+    plt.scatter(x,y,color='red')
+    plt.plot(x,lin_reg.predict(x),color='blue')
+    plt.title('Linear Regression')
+    plt.xlabel('Date')
+    plt.ylabel('Total Fully Vaccinated')
+    plt.show()
+    '''
+
+    x_grid=np.arange(min(x),max(x),0.1)
+    x_grid=x_grid.reshape((len(x_grid),1))
+    plt.scatter(x,y,color='red')
+    plt.plot(x,lin_reg2.predict(poly_reg.fit_transform(x)),color='blue')
+    plt.title('Polynomial Regression')
+    plt.xlabel('Date')
+    plt.ylabel('Total Fully Vaccinated')
+    plt.show()
+    array=[737920]
+    array.values.reshape(1,-1)
+    #predict = lin_reg2.predict(poly_reg.fit_transform((array)))
+    #print(predict)
+    '''
+    print("Dimensions of Train Dataset: Input Features"+str(x_train.shape)+", Output Label"+str(y_train.shape))
+    print("Dimensions of Test Dataset: Input Features"+str(x_test.shape)+", Output Label"+str(y_test.shape))
+
+    model_name = 'Polynomial Linear Regression'
+
+    polynomial_features = PolynomialFeatures(degree=3)
+    plRegressor = LinearRegression()
+
+    plr_model = Pipeline(steps=[('polyFeature',polynomial_features),('regressor', plRegressor)])
+
+    plr_model.fit(x_train,y_train)
+
+    y_pred_plr = plr_model.predict(x_test)
+
+    print(plRegressor)
+    LinearRegression(copy_X=True, fit_intercept=True, n_jobs=None, normalize=False)
+    print('Intercept: \n', plRegressor.intercept_)
+    print('Coefficients: \m', plRegressor.coef_)
+
+    '''
+    
+    """
     linear = LinearRegression()
     linear.fit(x_train,y_train)
     print(linear.intercept_)
@@ -147,7 +198,8 @@ def regressionAlgo(state):
     plt.scatter(x_test, y_test, color='b')
     plt.plot(x_test, y_pred, color='k')
     plt.show()
-regressionAlgo("Alabama")
+    """
+regressionAlgo("Washington")
 #graphVaccinated(date(2021, 5, 1), "New Hampshire")
 #print(convertTime("2021-04-05"))
 #print(vacc_df)
