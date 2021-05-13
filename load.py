@@ -84,7 +84,7 @@ def menu():
 
         if choice == 1:
             print()
-            # calculate_us_prediction()
+            # calculate_us_regression()
         elif choice == 2:
             state = get_state_input()
             x, y, regression_line = calculate_regression(state, state_vaccinations)
@@ -92,7 +92,8 @@ def menu():
 
         elif choice == 3:
             state = get_state_input()
-
+            # calculate_us_regression()
+            # make prediction using regression
 
 if __name__ == '__main__':
     # Read data

@@ -51,3 +51,8 @@ def calculate_regression(state, state_vaccinations_dict):
     y_temp = temp.flatten()
 
     return state_dates_ord, state_data['people_fully_vaccinated'].values, y_temp
+
+def calculate_us_regression(state_vaccinations_dict):
+    
+    print('')
+    # TODO calculate regression based on data for all 50 states
